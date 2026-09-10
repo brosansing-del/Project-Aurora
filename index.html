@@ -1,218 +1,254 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TheNaxalArchive | Data Dashboard & Analysis</title>
-  
-  <!-- CDN Dependencies for Map (Leaflet) and Visuals (Chart.js) -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TheNaxalArchive — Evolution, Data & Analysis</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
   
   <style>
     :root {
-      --bg-dark: #121212;
-      --card-bg: #1e1e1e;
-      --accent-red: #d9534f;
-      --accent-blue: #0275d8;
-      --accent-green: #5cb85c;
-      --accent-gold: #f0ad4e;
-      --text-main: #e0e0e0;
-      --text-muted: #a0a0a0;
-      --border-color: #333333;
+      --ink: #141210;
+      --paper: #eee8d8;
+      --paper-dim: #e2dac4;
+      --rust: #8a3324;
+      --rust-bright: #a8402c;
+      --olive: #5c5648;
+      --gold: #c8a45c;
+      --line: #3a352c;
+      --max: 1180px;
     }
 
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      margin: 0;
-      padding: 0;
-      background-color: var(--bg-dark);
-      color: var(--text-main);
-      font-family: system-ui, -apple-system, sans-serif;
+      background: var(--ink);
+      color: var(--paper);
+      font-family: 'Spectral', serif;
+      font-size: 17px;
+      line-height: 1.6;
     }
+    .mono { font-family: 'IBM Plex Mono', monospace; }
+    a { color: inherit; text-decoration: none; }
+    .wrap { max-width: var(--max); margin: 0 auto; padding: 0 32px; }
 
-    .wrap {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 20px;
+    /* Header */
+    header {
+      position: sticky; top: 0; z-index: 50;
+      background: rgba(20,18,16,0.95);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--line);
     }
-
-    .section-head {
-      border-bottom: 2px solid var(--border-color);
-      padding-bottom: 10px;
-      margin-bottom: 25px;
+    .navbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 32px; max-width: var(--max); margin: 0 auto;
     }
+    .brand-mark {
+      font-family: 'IBM Plex Mono', monospace; font-size: 12px;
+      color: var(--rust-bright); border: 1px solid var(--rust-bright); padding: 2px 6px;
+    }
+    .brand-name { font-size: 18px; font-weight: 600; }
+    .brand-name em { font-style: italic; color: var(--gold); }
+    nav.links { display: flex; gap: 24px; font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; }
+    nav.links a:hover { color: var(--gold); }
 
+    /* Layout Sections */
+    section { padding: 64px 0; border-bottom: 1px solid var(--line); }
     .section-tag {
-      color: var(--accent-red);
-      font-weight: bold;
-      font-size: 0.85rem;
-      letter-spacing: 1px;
+      font-family: 'IBM Plex Mono', monospace; font-size: 11px;
+      color: var(--rust-bright); letter-spacing: 0.08em; display: block; margin-bottom: 8px;
     }
 
-    h2 { margin: 5px 0 10px 0; font-size: 1.8rem; }
+    /* Grid Splits */
+    .hero-grid { display: grid; grid-template-columns: 1.3fr 0.7fr; gap: 48px; align-items: end; }
+    .split-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
 
-    /* Dashboard Layout */
-    .dashboard-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
-      gap: 20px;
-    }
-
-    @media (max-width: 600px) {
-      .dashboard-grid { grid-template-columns: 1fr; }
-    }
-
+    /* Cards & Blocks */
     .card {
-      background-color: var(--card-bg);
-      border: 1px solid var(--border-color);
-      border-radius: 8px;
-      padding: 20px;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+      border: 1px solid var(--line); background: #181513; padding: 24px;
+      display: flex; flex-direction: column; justify-content: space-between;
     }
+    .card.oped { border-top: 2px solid var(--gold); }
+    .card h3 { font-size: 1.15rem; margin: 12px 0 8px; line-height: 1.3; }
+    .card p { color: var(--paper-dim); font-size: 0.92rem; }
+    .meta { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--olive); }
 
-    .card-title {
-      font-size: 1.1rem;
-      font-weight: bold;
-      margin-bottom: 15px;
-      color: #fff;
+    /* Horizontal Timeline Optimization */
+    .timeline-track {
+      display: flex; overflow-x: auto; gap: 24px; padding-bottom: 16px;
+      scroll-snap-type: x mandatory; scrollbar-width: thin;
     }
+    .tl-node {
+      min-width: 260px; max-width: 260px; border-right: 1px dashed var(--line);
+      padding-right: 24px; scroll-snap-align: start; flex-shrink: 0;
+    }
+    .tl-year { font-family: 'IBM Plex Mono', monospace; font-size: 1.4rem; color: var(--rust-bright); }
 
-    .map-container {
-      height: 400px;
-      width: 100%;
-      border-radius: 6px;
+    @media (max-width: 850px) {
+      .hero-grid, .split-2, .grid-3 { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 <body>
 
-<div class="wrap">
-  <section id="data-dashboard">
-    <div class="section-head">
-      <span class="section-tag">DATA ARCHIVE & METRICS</span>
-      <h2>LWE Ground Metrics & Spatial Trends</h2>
-      <p>Data loaded dynamically from external data store (<code>lwe-data.json</code>).</p>
+<header>
+  <div class="navbar">
+    <a href="#" class="brand">
+      <span class="brand-mark">TNA</span>
+      <span class="brand-name">The<em>Naxal</em>Archive</span>
+    </a>
+    <nav class="links">
+      <a href="#map-section">Spatial Map</a>
+      <a href="#opeds">Op-Eds &amp; Analysis</a>
+      <a href="#timeline">Chronology</a>
+      <a href="#archive">Archive Directory</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- HERO SECTION -->
+  <section class="hero-grid">
+    <div>
+      <span class="section-tag">OPEN ARCHIVE · REVISION 2026.09</span>
+      <h1 style="font-size: 2.8rem; line-height: 1.1;">Documenting six decades of armed conflict and spatial change.</h1>
+      <p style="margin-top: 18px; color: var(--paper-dim);">
+        An open-access empirical dossier tracking the history, operational geography, and tactical shifts of Naxalism in India from 1967 to the present day.
+      </p>
     </div>
-
-    <div class="dashboard-grid">
-      <!-- 1. MAP SECTION -->
-      <div class="card" style="grid-column: 1 / -1;">
-        <div class="card-title">1. Statewise LWE Violence-Affected Districts</div>
-        <div id="map" class="map-container"></div>
+    <div style="border-left: 1px solid var(--line); padding-left: 24px;" class="mono">
+      <div style="margin-bottom: 12px;">
+        <span style="color:var(--olive); display:block;">CORE AREA (2026)</span>
+        <span>Chhattisgarh, Odisha, Maharashtra Tri-Junction</span>
       </div>
-
-      <!-- 2. CASUALTY METRICS -->
-      <div class="card">
-        <div class="card-title">2. Casualties: Civilians vs. Security Forces</div>
-        <canvas id="casualtyChart"></canvas>
-      </div>
-
-      <!-- 3. FORWARD OPERATING BASES -->
-      <div class="card">
-        <div class="card-title">3. Establishment of SF Camps (FOBs)</div>
-        <canvas id="campsChart"></canvas>
-      </div>
-
-      <!-- 4. SURRENDER TRENDS -->
-      <div class="card">
-        <div class="card-title">4. LWE Cadre Surrenders</div>
-        <canvas id="surrenderChart"></canvas>
-      </div>
-
-      <!-- 5. ARMS RECOVERIES -->
-      <div class="card">
-        <div class="card-title">5. Arms & Ammunition Recoveries</div>
-        <canvas id="armsChart"></canvas>
+      <div>
+        <span style="color:var(--olive); display:block;">DATA SOURCES</span>
+        <span>MHA Reports, State Gazetteers, Gazette Filings, GIS Mapping</span>
       </div>
     </div>
   </section>
-</div>
 
-<!-- DATA ENGINE -->
-<script>
-  async function renderDashboard() {
-    try {
-      // Load external JSON data
-      const response = await fetch('lwe-data.json');
-      const data = await response.json();
+  <!-- SPATIAL ANALYSIS & MAP MODULE -->
+  <section id="map-section">
+    <span class="section-tag">GEOGRAPHIC SPREAD</span>
+    <h2 style="font-size: 1.8rem; margin-bottom: 24px;">District Contraction &amp; Red Corridor Dynamics</h2>
+    
+    <div class="split-2">
+      <!-- MAP CONTAINER -->
+      <div style="border: 1px solid var(--line); padding: 16px; background: #161412;">
+        <div style="display:flex; justify-size: space-between; align-items:center; margin-bottom: 12px;">
+          <span class="mono" style="color: var(--gold);">MAP DISPLAY: LWE DISTRICTS</span>
+          <span class="mono" id="year-label" style="font-size: 1.3rem;">2026</span>
+        </div>
+        
+        <!-- SVG Canvas Vector Placement -->
+        <div id="map-viewport" style="width: 100%; height: 320px; background: #11100e; border: 1px solid var(--line); display:flex; align-items:center; justify-content:center;">
+          <span class="mono" style="color: var(--olive); font-size: 12px;">[ Interactive SVG Map Data Loaded via JS ]</span>
+        </div>
 
-      // Chart Global Settings
-      const chartOptions = {
-        responsive: true,
-        plugins: { legend: { labels: { color: '#e0e0e0' } } },
-        scales: {
-          y: { ticks: { color: '#a0a0a0' }, grid: { color: '#333' } },
-          x: { ticks: { color: '#a0a0a0' }, grid: { color: '#333' } }
-        }
-      };
+        <div style="margin-top: 16px; display: flex; gap: 12px; align-items: center;">
+          <input type="range" id="year-slider" min="2004" max="2026" value="2026" style="flex: 1;">
+          <button class="mono" style="background: transparent; border: 1px solid var(--gold); color: var(--gold); padding: 4px 12px; cursor: pointer;">Play Timeline</button>
+        </div>
+      </div>
 
-      // 1. Render Map
-      const map = L.map('map').setView([20.5937, 82.9629], 6);
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; OpenStreetMap'
-      }).addTo(map);
+      <!-- MAP CONTEXT EDITORIAL -->
+      <div style="display: flex; flex-direction: column; justify-content: center;">
+        <h3 style="font-size: 1.3rem; margin-bottom: 12px;">The Shrinking Perimeter</h3>
+        <p style="color: var(--paper-dim); margin-bottom: 16px;">
+          Between 2006 and 2010, official security assessments cited over 180 districts as experiencing varying degrees of Naxalite activity. Operational consolidation, road-building programs, and security post placement have geographically compressed the movement's primary presence into a small subset of core forest sectors.
+        </p>
+        <div class="card mono" style="font-size: 12px; line-height: 1.8;">
+          <div><span style="color:var(--gold);">2006 Peak:</span> ~180 Affected Districts Across 12 States</div>
+          <div><span style="color:var(--gold);">2026 Baseline:</span> Concentrated Core Enclaves</div>
+        </div>
+      </div>
+    </div>
+  </section>
 
-      data.affectedDistricts.forEach(d => {
-        const isHigh = d.severity === 'Most Affected';
-        L.circle([d.lat, d.lng], {
-          color: isHigh ? '#d9534f' : '#f0ad4e',
-          fillColor: isHigh ? '#d9534f' : '#f0ad4e',
-          fillOpacity: 0.6,
-          radius: isHigh ? 35000 : 20000
-        }).addTo(map).bindPopup(`<b>${d.district}, ${d.state}</b><br>Category: ${d.severity}`);
-      });
+  <!-- OP-EDS & EDITORIAL ANALYSIS -->
+  <section id="opeds">
+    <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom: 32px;">
+      <div>
+        <span class="section-tag">PERSPECTIVES &amp; ANALYSIS</span>
+        <h2 style="font-size: 1.8rem;">Op-Eds &amp; Analytical Commentary</h2>
+      </div>
+      <a href="#all-opeds" class="mono" style="font-size: 12px; color: var(--gold);">View All Columns &rarr;</a>
+    </div>
 
-      // 2. Render Casualties Chart
-      new Chart(document.getElementById('casualtyChart'), {
-        type: 'line',
-        data: {
-          labels: data.casualtyData.years,
-          datasets: [
-            { label: 'Civilians Killed', data: data.casualtyData.civiliansKilled, borderColor: '#d9534f', fill: false },
-            { label: 'SF Killed', data: data.casualtyData.sfKilled, borderColor: '#0275d8', fill: false }
-          ]
-        },
-        options: chartOptions
-      });
+    <div class="grid-3">
+      <!-- Article 1 -->
+      <article class="card oped">
+        <div>
+          <div class="meta"><span style="color: var(--gold);">OP-ED</span> · SEP 2026</div>
+          <h3>Supply Routes, Counter-Tactics, and the Bastar Infrastructure Push</h3>
+          <p>An examination of how fortified forward operating bases and rural road construction impacted logistics corridors over the past five years.</p>
+        </div>
+        <div class="meta" style="margin-top: 16px;">By K. S. Ramanujam</div>
+      </article>
 
-      // 3. Render SF Camps Chart
-      new Chart(document.getElementById('campsChart'), {
-        type: 'bar',
-        data: {
-          labels: data.campsData.years,
-          datasets: [{ label: 'New FOBs Set Up', data: data.campsData.campsEstablished, backgroundColor: '#5cb85c' }]
-        },
-        options: chartOptions
-      });
+      <!-- Article 2 -->
+      <article class="card oped">
+        <div>
+          <div class="meta"><span style="color: var(--gold);">PERSPECTIVE</span> · AUG 2026</div>
+          <h3>The Evolution of Political Doctrine: 1967 vs 2024</h3>
+          <p>Tracing ideological documents from Charu Majumdar's historic 'Eight Documents' to contemporary central committee releases.</p>
+        </div>
+        <div class="meta" style="margin-top: 16px;">By Prof. A. N. Sen</div>
+      </article>
 
-      // 4. Render Surrender Chart
-      new Chart(document.getElementById('surrenderChart'), {
-        type: 'line',
-        data: {
-          labels: data.surrenderData.years,
-          datasets: [{ label: 'Maoist Surrenders', data: data.surrenderData.surrenders, borderColor: '#f0ad4e', backgroundColor: 'rgba(240,173,78,0.2)', fill: true }]
-        },
-        options: chartOptions
-      });
+      <!-- Article 3 -->
+      <article class="card oped">
+        <div>
+          <div class="meta"><span style="color: var(--gold);">ANALYSIS</span> · JUN 2026</div>
+          <h3>Socio-Economic Factors and Rehabilitation Frameworks</h3>
+          <p>A comparative assessment of state surrender policies, tribal land rights initiatives, and long-term reintegration metrics.</p>
+        </div>
+        <div class="meta" style="margin-top: 16px;">By Archival Research Desk</div>
+      </article>
+    </div>
+  </section>
 
-      // 5. Render Arms Recovery Chart
-      new Chart(document.getElementById('armsChart'), {
-        type: 'bar',
-        data: {
-          labels: data.armsData.years,
-          datasets: [{ label: 'Weapons Seized', data: data.armsData.armsRecovered, backgroundColor: '#0275d8' }]
-        },
-        options: chartOptions
-      });
+  <!-- CHRONOLOGY TIMELINE SLIDER -->
+  <section id="timeline">
+    <span class="section-tag">CHRONOLOGY</span>
+    <h2 style="font-size: 1.8rem; margin-bottom: 24px;">Historical Eras</h2>
 
-    } catch (err) {
-      console.error('Failed to load external dashboard data:', err);
-    }
-  }
+    <div class="timeline-track">
+      <div class="tl-node">
+        <div class="tl-year">1967</div>
+        <h4 style="margin: 6px 0;">Naxalbari Uprising</h4>
+        <p style="font-size: 0.88rem; color: var(--paper-dim);">Peasant revolt breaks out in North West Bengal, splitting away from mainstream parliamentary communist lines.</p>
+      </div>
+      <div class="tl-node">
+        <div class="tl-year">1980</div>
+        <h4 style="margin: 6px 0;">PWG Formation</h4>
+        <p style="font-size: 0.88rem; color: var(--paper-dim);">People's War Group establishes an operational base in Andhra Pradesh and northern Telangana forest belts.</p>
+      </div>
+      <div class="tl-node">
+        <div class="tl-year">2004</div>
+        <h4 style="margin: 6px 0;">Party Merger</h4>
+        <p style="font-size: 0.88rem; color: var(--paper-dim);">PWG and MCC merge to form the unified CPI (Maoist) command structure across eastern and central belts.</p>
+      </div>
+      <div class="tl-node">
+        <div class="tl-year">2026</div>
+        <h4 style="margin: 6px 0;">Present Status</h4>
+        <p style="font-size: 0.88rem; color: var(--paper-dim);">Conflict geography shrinks to specific regional tri-junctions with heightened state surrender frameworks.</p>
+      </div>
+    </div>
+  </section>
 
-  window.onload = renderDashboard;
-</script>
+</main>
+
+<footer style="padding: 32px 0; border-top: 1px solid var(--line); margin-top: 48px;">
+  <div class="wrap mono" style="display:flex; justify-content:space-between; font-size: 12px; color: var(--olive);">
+    <div>The Naxal Archive — Independent Research &amp; Documentation</div>
+    <div>Updated September 2026</div>
+  </div>
+</footer>
 
 </body>
 </html>
