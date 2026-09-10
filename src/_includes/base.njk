@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{ title }} — The Naxal Archive</title>
+  <link rel="stylesheet" href="/Project-Aurora/assets/css/style.css">
+</head>
+<body>
+  <header>
+    <nav>
+      <a href="/Project-Aurora/"><strong>The Naxal Archive</strong></a>
+    </nav>
+  </header>
+
+  <main style="max-width: 800px; margin: 40px auto; padding: 0 20px;">
+    <h1>{{ title }}</h1>
+    <p style="color: #888;">Published: {{ date | date: "%B %d, %Y" }} | By {{ author }}</p>
+    <hr style="margin: 20px 0;">
+    {{ content | safe }}
+  </main>
+</body>
+</html>
