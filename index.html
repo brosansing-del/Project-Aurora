@@ -1,265 +1,218 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Ground Truth | Independent Investigative Journalism</title>
-    <style>
-        :root {
-            --bg-main: #f8f9fa;
-            --text-main: #1a1a1a;
-            --accent-red: #a81c1c;
-            --accent-green: #1b7a43;
-            --accent-blue: #1d4ed8;
-            --card-bg: #ffffff;
-            --border-color: #e5e7eb;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TheNaxalArchive | Data Dashboard & Analysis</title>
+  
+  <!-- CDN Dependencies for Map (Leaflet) and Visuals (Chart.js) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  
+  <style>
+    :root {
+      --bg-dark: #121212;
+      --card-bg: #1e1e1e;
+      --accent-red: #d9534f;
+      --accent-blue: #0275d8;
+      --accent-green: #5cb85c;
+      --accent-gold: #f0ad4e;
+      --text-main: #e0e0e0;
+      --text-muted: #a0a0a0;
+      --border-color: #333333;
+    }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: system-ui, -apple-system, sans-serif;
+    }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Georgia, serif;
-            background-color: var(--bg-main);
-            color: var(--text-main);
-            line-height: 1.6;
-        }
+    .wrap {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
 
-        header {
-            background-color: #111;
-            color: #fff;
-            padding: 2rem 1rem 1rem 1rem;
-            border-bottom: 4px solid var(--accent-red);
-        }
+    .section-head {
+      border-bottom: 2px solid var(--border-color);
+      padding-bottom: 10px;
+      margin-bottom: 25px;
+    }
 
-        .header-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            text-align: center;
-        }
+    .section-tag {
+      color: var(--accent-red);
+      font-weight: bold;
+      font-size: 0.85rem;
+      letter-spacing: 1px;
+    }
 
-        .header-container h1 {
-            font-family: Georgia, serif;
-            font-size: 2.8rem;
-            letter-spacing: -1px;
-            text-transform: uppercase;
-        }
+    h2 { margin: 5px 0 10px 0; font-size: 1.8rem; }
 
-        .header-container p {
-            color: #9ca3af;
-            font-size: 0.95rem;
-            margin-top: 0.5rem;
-            font-style: italic;
-        }
+    /* Dashboard Layout */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+      gap: 20px;
+    }
 
-        nav {
-            background-color: #1f2937;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
+    @media (max-width: 600px) {
+      .dashboard-grid { grid-template-columns: 1fr; }
+    }
 
-        .nav-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            display: flex;
-            justify-content: center;
-            overflow-x: auto;
-        }
+    .card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    }
 
-        .nav-btn {
-            background: none;
-            border: none;
-            color: #d1d5db;
-            padding: 1rem 1.5rem;
-            font-size: 0.95rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            white-space: nowrap;
-        }
+    .card-title {
+      font-size: 1.1rem;
+      font-weight: bold;
+      margin-bottom: 15px;
+      color: #fff;
+    }
 
-        .nav-btn:hover, .nav-btn.active {
-            color: #fff;
-            background-color: var(--accent-red);
-        }
-
-        main {
-            max-width: 1200px;
-            margin: 2rem auto;
-            padding: 0 1rem;
-        }
-
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: 1.5rem;
-        }
-
-        .card {
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-
-        .card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-        }
-
-        .card-tag {
-            font-size: 0.75rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            padding: 0.4rem 0.8rem;
-            color: #fff;
-            width: fit-content;
-            margin: 1rem 1rem 0 1rem;
-            border-radius: 2px;
-        }
-
-        .tag-ideology { background-color: var(--accent-red); }
-        .tag-development { background-color: var(--accent-green); }
-        .tag-critique { background-color: var(--accent-blue); }
-
-        .card-body {
-            padding: 1rem;
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .card-title {
-            font-family: Georgia, serif;
-            font-size: 1.25rem;
-            margin-bottom: 0.5rem;
-            color: #111827;
-        }
-
-        .card-meta {
-            font-size: 0.8rem;
-            color: #6b7280;
-            margin-bottom: 0.75rem;
-        }
-
-        .card-excerpt {
-            font-size: 0.9rem;
-            color: #374151;
-            margin-bottom: 1rem;
-            flex-grow: 1;
-        }
-
-        .read-more {
-            font-weight: 600;
-            font-size: 0.85rem;
-            color: #111827;
-            text-decoration: none;
-            border-bottom: 2px solid #111827;
-            width: fit-content;
-        }
-
-        footer {
-            background-color: #111;
-            color: #9ca3af;
-            text-align: center;
-            padding: 2rem 1rem;
-            margin-top: 4rem;
-            font-size: 0.85rem;
-            border-top: 1px solid #374151;
-        }
-    </style>
+    .map-container {
+      height: 400px;
+      width: 100%;
+      border-radius: 6px;
+    }
+  </style>
 </head>
 <body>
 
-    <header>
-        <div class="header-container">
-            <h1>The Ground Truth</h1>
-            <p>Independent Journalism, Critical Analysis & Ground Realities in LWE Regions</p>
-        </div>
-    </header>
+<div class="wrap">
+  <section id="data-dashboard">
+    <div class="section-head">
+      <span class="section-tag">DATA ARCHIVE & METRICS</span>
+      <h2>LWE Ground Metrics & Spatial Trends</h2>
+      <p>Data loaded dynamically from external data store (<code>lwe-data.json</code>).</p>
+    </div>
 
-    <nav>
-        <div class="nav-container">
-            <button class="nav-btn active" onclick="filterCategory('all')">All Reports</button>
-            <button class="nav-btn" onclick="filterCategory('ideology')">Naxal Ideology Exposed</button>
-            <button class="nav-btn" onclick="filterCategory('development')">LWE Ground Progress</button>
-            <button class="nav-btn" onclick="filterCategory('critique')">Intellectual Critiques</button>
-        </div>
-    </nav>
+    <div class="dashboard-grid">
+      <!-- 1. MAP SECTION -->
+      <div class="card" style="grid-column: 1 / -1;">
+        <div class="card-title">1. Statewise LWE Violence-Affected Districts</div>
+        <div id="map" class="map-container"></div>
+      </div>
 
-    <main>
-        <div class="grid" id="articles-grid">
-            
-            <article class="card" data-category="ideology">
-                <span class="card-tag tag-ideology">Ideology Unmasked</span>
-                <div class="card-body">
-                    <h2 class="card-title">The Cost of Insurgency: Deconstructing the Maoist Doctrine</h2>
-                    <div class="card-meta">By Research Team | Sep 2026 | 8 min read</div>
-                    <p class="card-excerpt">An in-depth analysis of how armed violence undermines regional governance and disproportionately harms local indigenous communities.</p>
-                    <a href="#" class="read-more">Read Full Analysis &rarr;</a>
-                </div>
-            </article>
+      <!-- 2. CASUALTY METRICS -->
+      <div class="card">
+        <div class="card-title">2. Casualties: Civilians vs. Security Forces</div>
+        <canvas id="casualtyChart"></canvas>
+      </div>
 
-            <article class="card" data-category="development">
-                <span class="card-tag tag-development">Ground Progress</span>
-                <div class="card-body">
-                    <h2 class="card-title">Bastar's Infrastructure Turnaround: Bridges, Roads, and Connectivity</h2>
-                    <div class="card-meta">By Field Reporter | Aug 2026 | 5 min read</div>
-                    <p class="card-excerpt">How newly built road networks and security camps are finally delivering welfare services, rural markets, and healthcare access to remote villages.</p>
-                    <a href="#" class="read-more">Read Field Report &rarr;</a>
-                </div>
-            </article>
+      <!-- 3. FORWARD OPERATING BASES -->
+      <div class="card">
+        <div class="card-title">3. Establishment of SF Camps (FOBs)</div>
+        <canvas id="campsChart"></canvas>
+      </div>
 
-            <article class="card" data-category="critique">
-                <span class="card-tag tag-critique">Book Review & Critique</span>
-                <div class="card-body">
-                    <h2 class="card-title">Romanticizing Conflict: A Review of Salon-Left Narrative Literature</h2>
-                    <div class="card-meta">By Literary Desk | Aug 2026 | 10 min read</div>
-                    <p class="card-excerpt">Examining how select urban authors gloss over insurgency atrocities to present a sanitized, ideological myth to mainstream audiences.</p>
-                    <a href="#" class="read-more">Read Review &rarr;</a>
-                </div>
-            </article>
+      <!-- 4. SURRENDER TRENDS -->
+      <div class="card">
+        <div class="card-title">4. LWE Cadre Surrenders</div>
+        <canvas id="surrenderChart"></canvas>
+      </div>
 
-            <article class="card" data-category="development">
-                <span class="card-tag tag-development">Ground Progress</span>
-                <div class="card-body">
-                    <h2 class="card-title">Data Study: Mobile Tower Expansion in Former Red Corridor Belts</h2>
-                    <div class="card-meta">By Data Desk | Jul 2026 | 6 min read</div>
-                    <p class="card-excerpt">A quantitative look at digital connectivity, mobile banking penetration, and educational tech reach across security-vacuum areas over the last 5 years.</p>
-                    <a href="#" class="read-more">View Data Report &rarr;</a>
-                </div>
-            </article>
+      <!-- 5. ARMS RECOVERIES -->
+      <div class="card">
+        <div class="card-title">5. Arms & Ammunition Recoveries</div>
+        <canvas id="armsChart"></canvas>
+      </div>
+    </div>
+  </section>
+</div>
 
-        </div>
-    </main>
+<!-- DATA ENGINE -->
+<script>
+  async function renderDashboard() {
+    try {
+      // Load external JSON data
+      const response = await fetch('lwe-data.json');
+      const data = await response.json();
 
-    <footer>
-        <p>&copy; 2026 The Ground Truth Project. Dedicated to objective, fact-based investigative journalism.</p>
-    </footer>
-
-    <script>
-        function filterCategory(category) {
-            const cards = document.querySelectorAll('.card');
-            const buttons = document.querySelectorAll('.nav-btn');
-
-            buttons.forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
-
-            cards.forEach(card => {
-                if (category === 'all' || card.dataset.category === category) {
-                    card.style.display = 'flex';
-                } else {
-                    card.style.display = 'none';
-                }
-            });
+      // Chart Global Settings
+      const chartOptions = {
+        responsive: true,
+        plugins: { legend: { labels: { color: '#e0e0e0' } } },
+        scales: {
+          y: { ticks: { color: '#a0a0a0' }, grid: { color: '#333' } },
+          x: { ticks: { color: '#a0a0a0' }, grid: { color: '#333' } }
         }
-    </script>
+      };
+
+      // 1. Render Map
+      const map = L.map('map').setView([20.5937, 82.9629], 6);
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; OpenStreetMap'
+      }).addTo(map);
+
+      data.affectedDistricts.forEach(d => {
+        const isHigh = d.severity === 'Most Affected';
+        L.circle([d.lat, d.lng], {
+          color: isHigh ? '#d9534f' : '#f0ad4e',
+          fillColor: isHigh ? '#d9534f' : '#f0ad4e',
+          fillOpacity: 0.6,
+          radius: isHigh ? 35000 : 20000
+        }).addTo(map).bindPopup(`<b>${d.district}, ${d.state}</b><br>Category: ${d.severity}`);
+      });
+
+      // 2. Render Casualties Chart
+      new Chart(document.getElementById('casualtyChart'), {
+        type: 'line',
+        data: {
+          labels: data.casualtyData.years,
+          datasets: [
+            { label: 'Civilians Killed', data: data.casualtyData.civiliansKilled, borderColor: '#d9534f', fill: false },
+            { label: 'SF Killed', data: data.casualtyData.sfKilled, borderColor: '#0275d8', fill: false }
+          ]
+        },
+        options: chartOptions
+      });
+
+      // 3. Render SF Camps Chart
+      new Chart(document.getElementById('campsChart'), {
+        type: 'bar',
+        data: {
+          labels: data.campsData.years,
+          datasets: [{ label: 'New FOBs Set Up', data: data.campsData.campsEstablished, backgroundColor: '#5cb85c' }]
+        },
+        options: chartOptions
+      });
+
+      // 4. Render Surrender Chart
+      new Chart(document.getElementById('surrenderChart'), {
+        type: 'line',
+        data: {
+          labels: data.surrenderData.years,
+          datasets: [{ label: 'Maoist Surrenders', data: data.surrenderData.surrenders, borderColor: '#f0ad4e', backgroundColor: 'rgba(240,173,78,0.2)', fill: true }]
+        },
+        options: chartOptions
+      });
+
+      // 5. Render Arms Recovery Chart
+      new Chart(document.getElementById('armsChart'), {
+        type: 'bar',
+        data: {
+          labels: data.armsData.years,
+          datasets: [{ label: 'Weapons Seized', data: data.armsData.armsRecovered, backgroundColor: '#0275d8' }]
+        },
+        options: chartOptions
+      });
+
+    } catch (err) {
+      console.error('Failed to load external dashboard data:', err);
+    }
+  }
+
+  window.onload = renderDashboard;
+</script>
+
 </body>
 </html>
